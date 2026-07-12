@@ -1,121 +1,299 @@
 import pool from "../db.js";
 
 
-export async function getReports(req, res) {
+// ===============================
+// VEHICLE ANALYTICS REPORT
+// ===============================
 
-    try {
+export const getVehicleReports = async (req,res)=>{
 
+try{
 
-        // Fleet Utilization
+const result = await pool.query(`
 
-        const vehicleStats = await pool.query(`
-            SELECT
+SELECT
 
-            COUNT(*) AS total_vehicles,
+v.id,
+v.registration_number,
+v.vehicle_name,
 
-            COUNT(*) FILTER(
-                WHERE status='On Trip'
-            ) AS active_vehicles
+COUNT(t.id) AS total_trips,
 
-            FROM vehicles
-        `);
-
-
-
-        // Total Fuel Cost
-
-        const fuelCost = await pool.query(`
-            SELECT
-
-            COALESCE(SUM(cost),0)
-            AS total_fuel_cost
-
-            FROM fuel_logs
-        `);
+COUNT(
+CASE 
+WHEN t.status='Completed'
+THEN 1
+END
+) AS completed_trips,
 
 
-
-        // Total Maintenance Cost
-
-        const maintenanceCost = await pool.query(`
-            SELECT
-
-            COALESCE(SUM(amount),0)
-            AS total_maintenance_cost
-
-            FROM expenses
-
-            WHERE expense_type='Maintenance'
-        `);
+COALESCE(SUM(t.planned_distance),0)
+AS total_distance,
 
 
-
-        // Active Trips
-
-        const activeTrips = await pool.query(`
-            SELECT COUNT(*)
-
-            FROM trips
-
-            WHERE status='Dispatched'
-        `);
+COALESCE(SUM(t.fuel_consumed),0)
+AS total_fuel,
 
 
-
-        const totalVehicles =
-            Number(vehicleStats.rows[0].total_vehicles);
-
-
-        const activeVehicles =
-            Number(vehicleStats.rows[0].active_vehicles);
-
-
-
-        const fleetUtilization =
-            totalVehicles === 0
-            ? 0
-            : ((activeVehicles / totalVehicles) * 100).toFixed(2);
+CASE
+WHEN COALESCE(SUM(t.fuel_consumed),0) > 0
+THEN ROUND(
+SUM(t.planned_distance) /
+SUM(t.fuel_consumed),2
+)
+ELSE 0
+END
+AS fuel_efficiency,
 
 
-
-        res.status(200).json({
-
-            success:true,
-
-            data:{
-                totalVehicles,
-                activeVehicles,
-
-                fleetUtilization:`${fleetUtilization}%`,
-
-                activeTrips:
-                Number(activeTrips.rows[0].count),
-
-                totalFuelCost:
-                Number(fuelCost.rows[0].total_fuel_cost),
-
-                totalMaintenanceCost:
-                Number(
-                    maintenanceCost.rows[0]
-                    .total_maintenance_cost
-                )
-            }
-
-        });
+COALESCE(
+(
+SELECT SUM(fuel_cost)
+FROM fuel_logs f
+WHERE f.vehicle_id=v.id
+),0
+)
+AS fuel_cost,
 
 
-
-    } catch(error) {
-
-
-        res.status(500).json({
-
-            success:false,
-            message:error.message
-
-        });
+COALESCE(
+(
+SELECT SUM(cost)
+FROM maintenance_logs m
+WHERE m.vehicle_id=v.id
+),0
+)
+AS maintenance_cost,
 
 
-    }
+COALESCE(
+(
+SELECT SUM(revenue)
+FROM trips tr
+WHERE tr.vehicle_id=v.id
+),0
+)
+AS revenue,
+
+
+CASE
+WHEN v.acquisition_cost > 0
+THEN
+(
+(
+COALESCE(
+(SELECT SUM(revenue)
+FROM trips tr
+WHERE tr.vehicle_id=v.id),0
+)
+-
+(
+COALESCE(
+(SELECT SUM(fuel_cost)
+FROM fuel_logs f
+WHERE f.vehicle_id=v.id),0
+)
++
+COALESCE(
+(SELECT SUM(cost)
+FROM maintenance_logs m
+WHERE m.vehicle_id=v.id),0
+)
+)
+)
+/
+v.acquisition_cost
+)
+ELSE 0
+END
+AS roi
+
+
+FROM vehicles v
+
+LEFT JOIN trips t
+ON v.id=t.vehicle_id
+
+
+GROUP BY v.id;
+
+
+`);
+
+
+res.json(result.rows);
+
+
+}catch(error){
+
+console.log(error);
+
+res.status(500).json({
+message:"Server Error",
+error:error.message
+});
 
 }
+
+};
+
+
+
+
+// ===============================
+// FUEL REPORT
+// ===============================
+
+export const getFuelReport = async(req,res)=>{
+
+try{
+
+const result = await pool.query(`
+
+SELECT
+
+v.registration_number,
+
+SUM(f.fuel_quantity) AS total_fuel,
+
+SUM(f.fuel_cost) AS total_fuel_cost
+
+
+FROM fuel_logs f
+
+
+JOIN vehicles v
+ON f.vehicle_id=v.id
+
+
+GROUP BY v.registration_number;
+
+
+`);
+
+
+res.json(result.rows);
+
+
+}catch(error){
+
+res.status(500).json({
+message:"Server Error",
+error:error.message
+});
+
+}
+
+};
+
+
+
+
+// ===============================
+// MAINTENANCE REPORT
+// ===============================
+
+export const getMaintenanceReport = async(req,res)=>{
+
+try{
+
+
+const result = await pool.query(`
+
+SELECT
+
+v.registration_number,
+
+COUNT(m.id) AS total_maintenance,
+
+COALESCE(SUM(m.cost),0)
+AS maintenance_cost
+
+
+FROM maintenance_logs m
+
+
+JOIN vehicles v
+ON m.vehicle_id=v.id
+
+
+GROUP BY v.registration_number;
+
+
+`);
+
+
+res.json(result.rows);
+
+
+}catch(error){
+
+res.status(500).json({
+message:"Server Error",
+error:error.message
+});
+
+}
+
+};
+
+
+
+
+// ===============================
+// DRIVER REPORT
+// ===============================
+
+export const getDriverReport = async(req,res)=>{
+
+
+try{
+
+
+const result = await pool.query(`
+
+SELECT
+
+d.id,
+d.name,
+
+COUNT(t.id)
+AS total_trips,
+
+
+COUNT(
+CASE
+WHEN t.status='Completed'
+THEN 1
+END
+)
+AS completed_trips
+
+
+FROM drivers d
+
+
+LEFT JOIN trips t
+ON d.id=t.driver_id
+
+
+GROUP BY d.id;
+
+
+`);
+
+
+res.json(result.rows);
+
+
+}catch(error){
+
+res.status(500).json({
+message:"Server Error",
+error:error.message
+});
+
+}
+
+
+};

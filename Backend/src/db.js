@@ -76,7 +76,7 @@ export async function initDatabase() {
 
     final_odometer DECIMAL(10,2),
     fuel_consumed DECIMAL(10,2),
-
+revenue DECIMAL(10,2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -88,7 +88,8 @@ export async function initDatabase() {
         description TEXT,
         start_date DATE,
         end_date DATE,
-        status VARCHAR(30) DEFAULT 'Active'
+        status VARCHAR(30) DEFAULT 'Active',
+        cost DECIMAL(10,2) DEFAULT 0
       );
 
 

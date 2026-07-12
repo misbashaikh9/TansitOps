@@ -1,14 +1,23 @@
 import express from "express";
 
 import {
-    getReports
+    getVehicleReports,
+    getFuelReport,
+    getMaintenanceReport,
+    getDriverReport
 } from "./reportsController.js";
 
 
 const router = express.Router();
 
 
-router.get("/", getReports);
+router.get("/vehicles", getVehicleReports);
+
+router.get("/fuel", getFuelReport);
+
+router.get("/maintenance", getMaintenanceReport);
+
+router.get("/drivers", getDriverReport);
 
 
 export default router;
