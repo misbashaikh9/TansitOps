@@ -2,7 +2,7 @@ import api from './api.js'
 
 export async function getFuelLogs() {
   try {
-    const response = await api.get('/fuel-logs')
+    const response = await api.get('/fuel')
     return response.data
   } catch (error) {
     if (error.message?.toLowerCase().includes('404')) {

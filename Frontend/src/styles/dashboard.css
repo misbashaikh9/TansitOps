@@ -683,6 +683,172 @@
   gap: 10px 16px;
 }
 
+.drivers-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drivers-page-subtitle {
+  color: #475569;
+}
+
+.drivers-kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.drivers-toolbar-grid {
+  grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(160px, 1fr)) auto;
+}
+
+.drivers-field-search {
+  grid-column: span 2;
+}
+
+.driver-avatar-cell {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.driver-avatar-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.status-on-trip {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.status-inactive {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.drivers-mobile-list {
+  display: none;
+}
+
+.drivers-mobile-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drivers-mobile-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drivers-mobile-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.drivers-mobile-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.drivers-mobile-content {
+  display: grid;
+  gap: 8px;
+}
+
+.drivers-mobile-content p {
+  margin: 0;
+  color: #334155;
+}
+
+.drivers-delete-dialog {
+  width: min(540px, 100%);
+}
+
+.trips-kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.trips-toolbar-grid {
+  grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(140px, 1fr)) auto;
+}
+
+.trips-field-search {
+  grid-column: span 2;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.trips-mobile-list {
+  display: none;
+}
+
+.reports-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reports-kpi-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.reports-action-row {
+  margin-top: 12px;
+}
+
+.reports-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.reports-detail-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reports-detail-item span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.reports-detail-item strong {
+  color: #0f172a;
+  font-size: 1.2rem;
+}
+
+.maintenance-toolbar-grid {
+  grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(160px, 1fr));
+}
+
+.maintenance-field-search {
+  grid-column: span 2;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -736,6 +902,35 @@
 
   .vehicles-field-search {
     grid-column: span 3;
+  }
+
+  .drivers-toolbar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .drivers-field-search {
+    grid-column: span 2;
+  }
+
+  .trips-toolbar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trips-field-search {
+    grid-column: span 2;
+  }
+
+  .maintenance-toolbar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .maintenance-field-search {
+    grid-column: span 2;
+  }
+
+  .reports-kpi-grid,
+  .reports-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-content-grid {
@@ -821,6 +1016,46 @@
 
   .vehicles-field-search {
     grid-column: auto;
+  }
+
+  .drivers-field-search {
+    grid-column: auto;
+  }
+
+  .trips-field-search {
+    grid-column: auto;
+  }
+
+  .maintenance-field-search {
+    grid-column: auto;
+  }
+
+  .reports-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .reports-kpi-grid,
+  .reports-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .drivers-desktop-table {
+    display: none;
+  }
+
+  .trips-desktop-table {
+    display: none;
+  }
+
+  .drivers-mobile-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .trips-mobile-list {
+    display: grid;
+    gap: 12px;
   }
 
   .vehicles-pagination {
