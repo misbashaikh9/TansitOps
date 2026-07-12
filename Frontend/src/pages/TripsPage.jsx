@@ -1,10 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
+import TripDeleteDialog from '../components/trips/TripDeleteDialog.jsx'
+import TripFormModal from '../components/trips/TripFormModal.jsx'
 import TripPagination from '../components/trips/TripPagination.jsx'
 import TripStats from '../components/trips/TripStats.jsx'
 import TripTable from '../components/trips/TripTable.jsx'
 import TripToolbar from '../components/trips/TripToolbar.jsx'
 import TripViewModal from '../components/trips/TripViewModal.jsx'
-import { getTrips } from '../services/tripService.js'
+import { getDrivers } from '../services/driverService.js'
+import {
+  cancelTrip,
+  completeTrip,
+  createTrip,
+  deleteTrip,
+  dispatchTrip,
+  getTrips,
+  updateTrip,
+} from '../services/tripService.js'
+import { getVehicles } from '../services/vehicleService.js'
 
 const PAGE_SIZE = 10
 
@@ -44,12 +56,16 @@ function sortTrips(trips) {
 
 function TripsPage() {
   const [tripsState, setTripsState] = useState({ loading: true, error: '', data: [] })
+  const [vehiclesState, setVehiclesState] = useState([])
+  const [driversState, setDriversState] = useState([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('')
   const [vehicleFilter, setVehicleFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [viewTrip, setViewTrip] = useState(null)
+  const [formState, setFormState] = useState({ open: false, mode: 'add', saving: false, trip: null })
+  const [deleteState, setDeleteState] = useState({ open: false, deleting: false, trip: null })
 
   const loadTrips = async () => {
     setTripsState((previous) => ({ ...previous, loading: true, error: '' }))
@@ -64,6 +80,21 @@ function TripsPage() {
 
   useEffect(() => {
     loadTrips()
+  }, [])
+
+  useEffect(() => {
+    async function loadLookups() {
+      try {
+        const [vehicles, drivers] = await Promise.all([getVehicles(), getDrivers()])
+        setVehiclesState(Array.isArray(vehicles) ? vehicles : normalizeList(vehicles))
+        setDriversState(normalizeList(drivers))
+      } catch {
+        setVehiclesState([])
+        setDriversState([])
+      }
+    }
+
+    loadLookups()
   }, [])
 
   const statuses = useMemo(() => {
@@ -160,6 +191,114 @@ function TripsPage() {
     ]
   }, [tripsState.data])
 
+  const openAddModal = () => {
+    setFormState({ open: true, mode: 'add', saving: false, trip: null })
+  }
+
+  const openEditModal = (trip) => {
+    setFormState({ open: true, mode: 'edit', saving: false, trip })
+  }
+
+  const closeFormModal = () => {
+    setFormState({ open: false, mode: 'add', saving: false, trip: null })
+  }
+
+  function buildCreatePayload(form) {
+    return {
+      source: form.source.trim(),
+      destination: form.destination.trim(),
+      vehicle_id: Number(form.vehicle_id),
+      driver_id: Number(form.driver_id),
+      cargo_weight: Number(form.cargo_weight),
+      planned_distance: Number(form.planned_distance),
+    }
+  }
+
+  function buildUpdatePayload(form) {
+    return {
+      source: form.source.trim(),
+      destination: form.destination.trim(),
+      vehicle_id: Number(form.vehicle_id),
+      driver_id: Number(form.driver_id),
+      cargo_weight: Number(form.cargo_weight),
+      planned_distance: Number(form.planned_distance),
+      status: form.status,
+    }
+  }
+
+  const onSaveTrip = async (formValues) => {
+    setFormState((previous) => ({ ...previous, saving: true }))
+
+    try {
+      if (formState.mode === 'edit' && formState.trip?.id) {
+        await updateTrip(formState.trip.id, buildUpdatePayload(formValues))
+      } else {
+        await createTrip(buildCreatePayload(formValues))
+      }
+
+      closeFormModal()
+      await loadTrips()
+    } catch (error) {
+      setTripsState((previous) => ({ ...previous, error: error.message || 'Unable to save trip.' }))
+      setFormState((previous) => ({ ...previous, saving: false }))
+    }
+  }
+
+  const openDeleteDialog = (trip) => {
+    setDeleteState({ open: true, deleting: false, trip })
+  }
+
+  const closeDeleteDialog = () => {
+    setDeleteState({ open: false, deleting: false, trip: null })
+  }
+
+  const onConfirmDelete = async () => {
+    if (!deleteState.trip?.id) {
+      return
+    }
+
+    setDeleteState((previous) => ({ ...previous, deleting: true }))
+
+    try {
+      await deleteTrip(deleteState.trip.id)
+      closeDeleteDialog()
+      await loadTrips()
+    } catch (error) {
+      setTripsState((previous) => ({ ...previous, error: error.message || 'Unable to delete trip.' }))
+      setDeleteState((previous) => ({ ...previous, deleting: false }))
+    }
+  }
+
+  const onDispatchTrip = async (trip) => {
+    try {
+      await dispatchTrip(trip.id)
+      await loadTrips()
+    } catch (error) {
+      setTripsState((previous) => ({ ...previous, error: error.message || 'Unable to dispatch trip.' }))
+    }
+  }
+
+  const onCompleteTrip = async (trip) => {
+    try {
+      await completeTrip(trip.id, {
+        final_odometer: Number(trip.final_odometer || 0),
+        fuel_consumed: Number(trip.fuel_consumed || 0),
+      })
+      await loadTrips()
+    } catch (error) {
+      setTripsState((previous) => ({ ...previous, error: error.message || 'Unable to complete trip.' }))
+    }
+  }
+
+  const onCancelTrip = async (trip) => {
+    try {
+      await cancelTrip(trip.id)
+      await loadTrips()
+    } catch (error) {
+      setTripsState((previous) => ({ ...previous, error: error.message || 'Unable to cancel trip.' }))
+    }
+  }
+
   return (
     <>
       <section className="panel-card drivers-page-header">
@@ -181,6 +320,8 @@ function TripsPage() {
         onStatusChange={setStatusFilter}
         onDateChange={setDateFilter}
         onVehicleChange={setVehicleFilter}
+        onAdd={openAddModal}
+        onRefresh={loadTrips}
       />
 
       {tripsState.loading && <section className="dashboard-state-card">Loading trips...</section>}
@@ -195,7 +336,15 @@ function TripsPage() {
 
       {!tripsState.loading && !tripsState.error && filteredTrips.length > 0 && (
         <>
-          <TripTable trips={paginatedTrips} onView={setViewTrip} />
+          <TripTable
+            trips={paginatedTrips}
+            onView={setViewTrip}
+            onEdit={openEditModal}
+            onDelete={openDeleteDialog}
+            onDispatch={onDispatchTrip}
+            onComplete={onCompleteTrip}
+            onCancel={onCancelTrip}
+          />
 
           <TripPagination
             page={currentPage}
@@ -207,7 +356,25 @@ function TripsPage() {
         </>
       )}
 
+      <TripFormModal
+        isOpen={formState.open}
+        mode={formState.mode}
+        trip={formState.trip}
+        vehicles={vehiclesState}
+        drivers={driversState}
+        saving={formState.saving}
+        onClose={closeFormModal}
+        onSave={onSaveTrip}
+      />
+
       <TripViewModal trip={viewTrip} onClose={() => setViewTrip(null)} />
+
+      <TripDeleteDialog
+        trip={deleteState.open ? deleteState.trip : null}
+        deleting={deleteState.deleting}
+        onCancel={closeDeleteDialog}
+        onConfirm={onConfirmDelete}
+      />
     </>
   )
 }

@@ -1,4 +1,16 @@
-function TripTable({ trips, onView }) {
+function TripTable({
+  trips,
+  onView,
+  onEdit,
+  onDelete,
+  onDispatch,
+  onComplete,
+  onCancel,
+}) {
+  function statusValue(status) {
+    return String(status || '').toLowerCase()
+  }
+
   return (
     <section className="panel-card">
       <div className="panel-card-header">
@@ -49,6 +61,31 @@ function TripTable({ trips, onView }) {
                     <button type="button" className="vehicles-action-button" onClick={() => onView(trip)}>
                       View
                     </button>
+                    <button type="button" className="vehicles-action-button" onClick={() => onEdit(trip)}>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="vehicles-action-button vehicles-action-danger"
+                      onClick={() => onDelete(trip)}
+                    >
+                      Delete
+                    </button>
+                    {statusValue(trip.status) === 'draft' && (
+                      <button type="button" className="vehicles-action-button" onClick={() => onDispatch(trip)}>
+                        Dispatch
+                      </button>
+                    )}
+                    {statusValue(trip.status) === 'dispatched' && (
+                      <>
+                        <button type="button" className="vehicles-action-button" onClick={() => onComplete(trip)}>
+                          Complete
+                        </button>
+                        <button type="button" className="vehicles-action-button" onClick={() => onCancel(trip)}>
+                          Cancel
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -79,6 +116,9 @@ function TripTable({ trips, onView }) {
             <div className="vehicles-action-group">
               <button type="button" className="vehicles-action-button" onClick={() => onView(trip)}>
                 View
+              </button>
+              <button type="button" className="vehicles-action-button" onClick={() => onEdit(trip)}>
+                Edit
               </button>
             </div>
           </article>

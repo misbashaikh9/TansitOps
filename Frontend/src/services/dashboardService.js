@@ -46,7 +46,7 @@ export async function getDashboardData() {
     (vehicle) => String(vehicle.status || '').toLowerCase() === 'available',
   ).length
   const activeTrips = trips.filter((trip) =>
-    ['active', 'in transit', 'in progress'].includes(String(trip.status || '').toLowerCase()),
+    ['active', 'in transit', 'in progress', 'dispatched'].includes(String(trip.status || '').toLowerCase()),
   ).length
   const completedTrips = trips.filter(
     (trip) => String(trip.status || '').toLowerCase() === 'completed',

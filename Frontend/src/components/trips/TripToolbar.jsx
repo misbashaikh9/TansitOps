@@ -9,6 +9,8 @@ function TripToolbar({
   onStatusChange,
   onDateChange,
   onVehicleChange,
+  onAdd,
+  onRefresh,
 }) {
   return (
     <section className="panel-card vehicles-toolbar">
@@ -51,6 +53,15 @@ function TripToolbar({
             ))}
           </select>
         </label>
+
+        <div className="vehicles-action-group">
+          <button type="button" className="vehicles-action-button" onClick={onRefresh}>
+            Refresh
+          </button>
+          <button type="button" className="vehicles-action-button" onClick={onAdd}>
+            Add Trip
+          </button>
+        </div>
       </div>
     </section>
   )
