@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-
-const API_URL = 'http://127.0.0.1:5000/api'
+import Dashboard from './pages/Dashboard.jsx'
+import { getBackendHealth, signInUser, signUpUser } from './services/authService.js'
 
 const initialForm = {
   name: '',
@@ -22,12 +22,11 @@ function App() {
   useEffect(() => {
     async function checkBackend() {
       try {
-        const response = await fetch(`${API_URL}/health`)
-        const data = await response.json()
-        const dbState = data.database === 'connected' ? 'PostgreSQL connected' : 'Demo auth mode'
+        const data = await getBackendHealth()
+        const dbState = data.database === 'connected' ? 'PostgreSQL connected' : 'Backend available'
         setBackendStatus(dbState)
       } catch {
-        setBackendStatus('Backend unavailable on port 5000')
+        setBackendStatus('Backend unavailable')
       }
     }
 
@@ -44,19 +43,7 @@ function App() {
     setStatus({ loading: true, message: '', error: '' })
 
     try {
-      const response = await fetch(`${API_URL}/auth/${mode}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed.')
-      }
+      const data = mode === 'login' ? await signInUser(form) : await signUpUser(form)
 
       localStorage.setItem('token', data.token)
       localStorage.setItem('authUser', JSON.stringify(data.user))
@@ -85,57 +72,11 @@ function App() {
 
   if (currentUser) {
     return (
-      <main className="dashboard-wrapper">
-        <section className="dashboard-card">
-          <div className="dashboard-header">
-            <div>
-              <span className="pill">Dashboard</span>
-              <h1>Welcome, {currentUser.name}</h1>
-              <p>Here’s your quick overview after login.</p>
-            </div>
-            <button type="button" className="secondary-button" onClick={logout}>
-              Logout
-            </button>
-          </div>
-
-          <div className="dashboard-grid">
-            <article className="metric-card">
-              <span>Today’s visits</span>
-              <strong>42</strong>
-              <small>+12% from yesterday</small>
-            </article>
-
-            <article className="metric-card">
-              <span>Open tasks</span>
-              <strong>8</strong>
-              <small>4 urgent items</small>
-            </article>
-
-            <article className="metric-card">
-              <span>Revenue</span>
-              <strong>$2.4k</strong>
-              <small>On track this week</small>
-            </article>
-          </div>
-
-          <div className="dashboard-bottom">
-            <div className="list-card">
-              <h2>Quick actions</h2>
-              <ul>
-                <li>Review recent sign-ins</li>
-                <li>Check pending approvals</li>
-                <li>Update your profile</li>
-              </ul>
-            </div>
-
-            <div className="list-card">
-              <h2>Profile</h2>
-              <p>{currentUser.email}</p>
-              <p className="backend-status">Backend: {backendStatus}</p>
-            </div>
-          </div>
-        </section>
-      </main>
+      <Dashboard
+        currentUser={currentUser}
+        backendStatus={backendStatus}
+        onLogout={logout}
+      />
     )
   }
 

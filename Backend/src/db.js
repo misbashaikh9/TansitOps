@@ -92,13 +92,17 @@ export async function initDatabase() {
       );
 
 
-      CREATE TABLE IF NOT EXISTS fuel_logs(
-        id SERIAL PRIMARY KEY,
-        vehicle_id INTEGER REFERENCES vehicles(id),
-        liters DECIMAL,
-        cost DECIMAL,
-        date DATE
-      );
+      CREATE TABLE  IF NOT EXISTS fuel_logs (
+    id SERIAL PRIMARY KEY,
+    vehicle_id INT REFERENCES vehicles(id),
+    driver_id INT REFERENCES drivers(id),
+    fuel_date DATE NOT NULL,
+    fuel_quantity DECIMAL(10,2),
+    fuel_cost DECIMAL(10,2),
+    odometer_reading INT,
+    fuel_station VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 
       CREATE TABLE IF NOT EXISTS expenses(
