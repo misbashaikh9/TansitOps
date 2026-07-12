@@ -61,17 +61,25 @@ export async function initDatabase() {
       );
 
 
-      CREATE TABLE IF NOT EXISTS trips(
-        id SERIAL PRIMARY KEY,
-        source VARCHAR(100),
-        destination VARCHAR(100),
-        vehicle_id INTEGER REFERENCES vehicles(id),
-        driver_id INTEGER REFERENCES drivers(id),
-        cargo_weight DECIMAL,
-        planned_distance DECIMAL,
-        status VARCHAR(30) DEFAULT 'Draft',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+ CREATE TABLE IF NOT EXISTS trips (
+    id SERIAL PRIMARY KEY,
+    source VARCHAR(255) NOT NULL,
+    destination VARCHAR(255) NOT NULL,
+
+    vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+    driver_id INTEGER NOT NULL REFERENCES drivers(id) ON DELETE CASCADE,
+
+    cargo_weight DECIMAL(10,2) NOT NULL,
+    planned_distance DECIMAL(10,2) NOT NULL,
+
+    status VARCHAR(20) DEFAULT 'Draft',
+
+    final_odometer DECIMAL(10,2),
+    fuel_consumed DECIMAL(10,2),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 
       CREATE TABLE IF NOT EXISTS maintenance_logs(
