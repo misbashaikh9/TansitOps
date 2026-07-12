@@ -175,8 +175,18 @@ export async function updateVehicle(req,res){
 
         );
 
+        if(result.rows.length===0){
+            return res.status(404).json({
+                success:false,
+                message:"Vehicle not found"
+            });
+        }
 
-        res.json(result.rows[0]);
+        res.json({
+            success:true,
+            message:"Vehicle updated successfully",
+            data:result.rows[0]
+        });
 
 
     }catch(error){
@@ -199,13 +209,21 @@ export async function deleteVehicle(req,res){
         const {id}=req.params;
 
 
-        await pool.query(
-            "DELETE FROM vehicles WHERE id=$1",
+        const result = await pool.query(
+            "DELETE FROM vehicles WHERE id=$1 RETURNING *",
             [id]
         );
 
+        if(result.rows.length===0){
+            return res.status(404).json({
+                success:false,
+                message:"Vehicle not found"
+            });
+        }
+
 
         res.json({
+            success:true,
             message:"Vehicle deleted"
         });
 

@@ -42,8 +42,17 @@ export async function getDriverById(req,res){
             [id]
         );
 
+        if(result.rows.length===0){
+            return res.status(404).json({
+                success:false,
+                message:"Driver not found"
+            });
+        }
 
-        res.json(result.rows[0]);
+        res.json({
+            success:true,
+            data:result.rows[0]
+        });
 
 
     }catch(error){
@@ -167,8 +176,18 @@ export async function updateDriver(req,res){
 
         );
 
+        if(result.rows.length===0){
+            return res.status(404).json({
+                success:false,
+                message:"Driver not found"
+            });
+        }
 
-        res.json(result.rows[0]);
+        res.json({
+            success:true,
+            message:"Driver updated successfully",
+            data:result.rows[0]
+        });
 
 
     }catch(error){
@@ -191,13 +210,21 @@ export async function deleteDriver(req,res){
         const {id}=req.params;
 
 
-        await pool.query(
-            "DELETE FROM drivers WHERE id=$1",
+        const result = await pool.query(
+            "DELETE FROM drivers WHERE id=$1 RETURNING *",
             [id]
         );
 
+        if(result.rows.length===0){
+            return res.status(404).json({
+                success:false,
+                message:"Driver not found"
+            });
+        }
+
 
         res.json({
+            success:true,
             message:"Driver deleted"
         });
 

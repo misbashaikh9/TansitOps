@@ -118,7 +118,6 @@ export async function createTrip(req, res) {
 }
 
 export async function getTrips(req, res) {
-console.log("GET TRIPS API CALLED");
     try {
 
         const result = await pool.query(

@@ -36,6 +36,16 @@ app.post('/api/auth/login', login)
 
 await initDatabase()
 
-app.listen(port, '127.0.0.1', () => {
+const server = app.listen(port, '127.0.0.1', () => {
   console.log(`Backend listening on http://127.0.0.1:${port}`)
+})
+
+server.on('error', (error) => {
+  if (error?.code === 'EADDRINUSE') {
+    console.error(`Port ${port} is already in use. Stop the existing process or change PORT.`)
+    process.exit(1)
+  }
+
+  console.error(error)
+  process.exit(1)
 })
