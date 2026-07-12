@@ -64,7 +64,7 @@ function buildPayload(formValues) {
   }
 }
 
-function VehiclesPage() {
+function VehiclesPage({ globalSearchQuery = '' }) {
   const [vehiclesState, setVehiclesState] = useState({
     loading: true,
     error: '',
@@ -102,6 +102,10 @@ function VehiclesPage() {
   useEffect(() => {
     loadVehicles()
   }, [])
+
+  useEffect(() => {
+    setSearch(globalSearchQuery)
+  }, [globalSearchQuery])
 
   const typeOptions = useMemo(() => {
     const items = vehiclesState.data

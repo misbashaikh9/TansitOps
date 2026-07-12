@@ -72,7 +72,7 @@ function sortDrivers(drivers) {
   return [...drivers].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')))
 }
 
-function DriversPage() {
+function DriversPage({ globalSearchQuery = '' }) {
   const [driversState, setDriversState] = useState({ loading: true, error: '', data: [] })
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -96,6 +96,10 @@ function DriversPage() {
   useEffect(() => {
     loadDrivers()
   }, [])
+
+  useEffect(() => {
+    setSearch(globalSearchQuery)
+  }, [globalSearchQuery])
 
   const statuses = useMemo(() => {
     return [...new Set(driversState.data.map((driver) => driver.status).filter(Boolean).map(String))]

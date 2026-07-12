@@ -57,7 +57,7 @@ function sortMaintenance(data, sortBy, sortDirection) {
   return sortDirection === 'desc' ? sorted.reverse() : sorted
 }
 
-function MaintenancePage() {
+function MaintenancePage({ globalSearchQuery = '' }) {
   const [maintenanceState, setMaintenanceState] = useState({
     loading: true,
     error: '',
@@ -90,6 +90,10 @@ function MaintenancePage() {
 
     loadMaintenance()
   }, [])
+
+  useEffect(() => {
+    setSearch(globalSearchQuery)
+  }, [globalSearchQuery])
 
   const statuses = useMemo(() => {
     return [...new Set(maintenanceState.data.map((item) => item.status).filter(Boolean).map(String))]

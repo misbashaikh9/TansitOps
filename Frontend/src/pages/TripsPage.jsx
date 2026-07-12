@@ -54,7 +54,7 @@ function sortTrips(trips) {
   return [...trips].sort((a, b) => Number(b.id || 0) - Number(a.id || 0))
 }
 
-function TripsPage() {
+function TripsPage({ globalSearchQuery = '' }) {
   const [tripsState, setTripsState] = useState({ loading: true, error: '', data: [] })
   const [vehiclesState, setVehiclesState] = useState([])
   const [driversState, setDriversState] = useState([])
@@ -81,6 +81,10 @@ function TripsPage() {
   useEffect(() => {
     loadTrips()
   }, [])
+
+  useEffect(() => {
+    setSearch(globalSearchQuery)
+  }, [globalSearchQuery])
 
   useEffect(() => {
     async function loadLookups() {

@@ -140,12 +140,12 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
 
         <section className="page-transition-shell" key={activeItem}>
           <Suspense fallback={<SkeletonBlock rows={6} />}>
-            {activeItem === 'vehicles' && <VehiclesPage />}
-            {activeItem === 'drivers' && <DriversPage />}
-            {activeItem === 'trips' && <TripsPage />}
-            {activeItem === 'maintenance' && <MaintenancePage />}
-            {activeItem === 'fuel' && <FuelPage />}
-            {activeItem === 'reports' && <ReportsPage />}
+            {activeItem === 'vehicles' && <VehiclesPage globalSearchQuery={searchValue} />}
+            {activeItem === 'drivers' && <DriversPage globalSearchQuery={searchValue} />}
+            {activeItem === 'trips' && <TripsPage globalSearchQuery={searchValue} />}
+            {activeItem === 'maintenance' && <MaintenancePage globalSearchQuery={searchValue} />}
+            {activeItem === 'fuel' && <FuelPage globalSearchQuery={searchValue} />}
+            {activeItem === 'reports' && <ReportsPage globalSearchQuery={searchValue} />}
           </Suspense>
         </section>
 

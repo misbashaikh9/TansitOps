@@ -43,7 +43,7 @@ function sortFuelRecords(records, sortBy, sortDirection) {
   return sortDirection === 'desc' ? sorted.reverse() : sorted
 }
 
-function FuelPage() {
+function FuelPage({ globalSearchQuery = '' }) {
   const toast = useToast()
   const [fuelState, setFuelState] = useState({ loading: true, error: '', data: [] })
   const [search, setSearch] = useState('')
@@ -76,6 +76,10 @@ function FuelPage() {
 
     loadFuel()
   }, [])
+
+  useEffect(() => {
+    setSearch(globalSearchQuery)
+  }, [globalSearchQuery])
 
   const vehicles = useMemo(() => {
     return [
