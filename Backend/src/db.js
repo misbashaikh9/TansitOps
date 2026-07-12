@@ -12,27 +12,120 @@ const pool = process.env.DATABASE_URL
 
 export async function initDatabase() {
   if (!pool) {
-    console.log('DATABASE_URL not set. Falling back to in-memory storage for demo auth.')
+    console.log('DATABASE_URL not set.')
     return
   }
 
   try {
+
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      
+      CREATE TABLE IF NOT EXISTS roles(
+        id SERIAL PRIMARY KEY,
+        role_name VARCHAR(50) UNIQUE NOT NULL
+      );
+
+
+      CREATE TABLE IF NOT EXISTS users(
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
+        role_id INTEGER REFERENCES roles(id),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `)
+      );
 
-    databaseReady = true
-    console.log('PostgreSQL connected successfully.')
-  } catch (error) {
-    console.warn('Unable to connect to PostgreSQL. Falling back to in-memory storage.')
-    console.warn(error.message)
-    databaseReady = false
+
+      CREATE TABLE IF NOT EXISTS vehicles(
+        id SERIAL PRIMARY KEY,
+        registration_number VARCHAR(50) UNIQUE NOT NULL,
+        vehicle_name VARCHAR(100),
+        model VARCHAR(100),
+        type VARCHAR(50),
+        max_load_capacity DECIMAL NOT NULL,
+        odometer INTEGER DEFAULT 0,
+        acquisition_cost DECIMAL,
+        status VARCHAR(30) DEFAULT 'Available'
+      );
+
+
+      CREATE TABLE IF NOT EXISTS drivers(
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        license_number VARCHAR(100) UNIQUE NOT NULL,
+        license_category VARCHAR(50),
+        license_expiry DATE,
+        contact_number VARCHAR(20),
+        safety_score INTEGER DEFAULT 0,
+        status VARCHAR(30) DEFAULT 'Available'
+      );
+
+
+      CREATE TABLE IF NOT EXISTS trips(
+        id SERIAL PRIMARY KEY,
+        source VARCHAR(100),
+        destination VARCHAR(100),
+        vehicle_id INTEGER REFERENCES vehicles(id),
+        driver_id INTEGER REFERENCES drivers(id),
+        cargo_weight DECIMAL,
+        planned_distance DECIMAL,
+        status VARCHAR(30) DEFAULT 'Draft',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+
+      CREATE TABLE IF NOT EXISTS maintenance_logs(
+        id SERIAL PRIMARY KEY,
+        vehicle_id INTEGER REFERENCES vehicles(id),
+        description TEXT,
+        start_date DATE,
+        end_date DATE,
+        status VARCHAR(30) DEFAULT 'Active'
+      );
+
+
+      CREATE TABLE IF NOT EXISTS fuel_logs(
+        id SERIAL PRIMARY KEY,
+        vehicle_id INTEGER REFERENCES vehicles(id),
+        liters DECIMAL,
+        cost DECIMAL,
+        date DATE
+      );
+
+
+      CREATE TABLE IF NOT EXISTS expenses(
+        id SERIAL PRIMARY KEY,
+        vehicle_id INTEGER REFERENCES vehicles(id),
+        expense_type VARCHAR(100),
+        amount DECIMAL,
+        date DATE
+      );
+
+    `);
+
+
+    // insert default roles
+
+    await pool.query(`
+      INSERT INTO roles(role_name)
+      VALUES
+      ('Admin'),
+      ('Dispatcher'),
+      ('Manager')
+      ON CONFLICT DO NOTHING;
+    `);
+
+
+    databaseReady = true;
+
+    console.log("PostgreSQL database initialized successfully.");
+
+  } catch(error){
+
+    console.log("Database initialization failed");
+    console.log(error.message);
+
+    databaseReady = false;
   }
 }
 
@@ -73,3 +166,5 @@ export async function saveUser({ name, email, passwordHash }) {
 
   return result.rows[0]
 }
+
+export default pool;

@@ -3,12 +3,19 @@ import express from 'express'
 import cors from 'cors'
 import { initDatabase, isDatabaseReady } from './src/db.js'
 import { signup, login } from './src/authController.js'
+import vehicleRoutes  from "./src/vehicle/vehicleRoutes.js";
+import driverRoutes from "./src/driver/driverRoutes.js";
+import tripRoutes from "./src/trip/tripRoutes.js";
+
 
 const app = express()
 const port = Number(process.env.PORT || 5000)
 
 app.use(cors())
 app.use(express.json())
+app.use("/api/vehicles",vehicleRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/trips", tripRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -19,6 +26,7 @@ app.get('/api/health', (req, res) => {
 
 app.post('/api/auth/signup', signup)
 app.post('/api/auth/login', login)
+
 
 await initDatabase()
 
