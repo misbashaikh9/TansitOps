@@ -6,6 +6,9 @@ import { signup, login } from './src/authController.js'
 import vehicleRoutes  from "./src/vehicle/vehicleRoutes.js";
 import driverRoutes from "./src/driver/driverRoutes.js";
 import tripRoutes from "./src/trip/tripRoutes.js";
+import fuelRoutes from "./src/fuel/fuelRoutes.js";
+import maintenanceRoutes from "./src/maintenance/maintenanceRoute.js";
+import reportsRoutes from "./src/reports/reportsRoutes.js";
 
 
 const app = express()
@@ -16,6 +19,9 @@ app.use(express.json())
 app.use("/api/vehicles",vehicleRoutes);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/trips", tripRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/fuel", fuelRoutes);
+app.use("/api/reports", reportsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
