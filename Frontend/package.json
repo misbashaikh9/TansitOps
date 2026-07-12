@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:local": "vite --host 127.0.0.1 --port 5173",
+    "dev:5173": "vite --host 127.0.0.1 --port 5173",
+    "dev:4173": "vite --host 127.0.0.1 --port 4173",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

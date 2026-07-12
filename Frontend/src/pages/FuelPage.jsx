@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import FilterDrawer from '../components/FilterDrawer.jsx'
+import ExpenseCreateModal from '../components/fuel/ExpenseCreateModal.jsx'
+import FuelCreateModal from '../components/fuel/FuelCreateModal.jsx'
 import FuelDetailsModal from '../components/fuel/FuelDetailsModal.jsx'
 import FuelPagination from '../components/fuel/FuelPagination.jsx'
 import FuelStats from '../components/fuel/FuelStats.jsx'
@@ -8,7 +10,8 @@ import FuelToolbar from '../components/fuel/FuelToolbar.jsx'
 import SkeletonBlock from '../components/SkeletonBlock.jsx'
 import StatePanel from '../components/StatePanel.jsx'
 import { useToast } from '../context/ToastContext.jsx'
-import { getFuelLogs } from '../services/fuelService.js'
+import { createExpenseLog, getExpenseLogs, createFuelLog, getFuelLogs } from '../services/fuelService.js'
+import { getVehicles } from '../services/vehicleService.js'
 
 const PAGE_SIZE = 10
 
@@ -55,26 +58,58 @@ function FuelPage({ globalSearchQuery = '' }) {
   const [page, setPage] = useState(1)
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [vehiclesState, setVehiclesState] = useState([])
+  const [createState, setCreateState] = useState({ open: false, saving: false })
+  const [expenseState, setExpenseState] = useState({ open: false, saving: false })
+  const [expenseLogs, setExpenseLogs] = useState([])
+
+  const loadFuel = async ({ silent = false } = {}) => {
+    setFuelState((previous) => ({ ...previous, loading: true, error: '' }))
+
+    try {
+      const response = await getFuelLogs()
+      setFuelState({ loading: false, error: '', data: normalizeList(response) })
+      if (!silent) {
+        toast.success('Fuel Updated', 'Fuel records loaded.')
+      }
+    } catch (error) {
+      setFuelState({
+        loading: false,
+        error: error.message || 'Unable to load fuel records.',
+        data: [],
+      })
+      toast.error('Fuel Load Failed', error.message || 'Unable to load fuel records.')
+    }
+  }
 
   useEffect(() => {
-    async function loadFuel() {
-      setFuelState((previous) => ({ ...previous, loading: true, error: '' }))
+    loadFuel()
+  }, [])
 
+  useEffect(() => {
+    async function loadVehicles() {
       try {
-        const response = await getFuelLogs()
-        setFuelState({ loading: false, error: '', data: normalizeList(response) })
-        toast.success('Fuel Updated', 'Fuel records loaded.')
-      } catch (error) {
-        setFuelState({
-          loading: false,
-          error: error.message || 'Unable to load fuel records.',
-          data: [],
-        })
-        toast.error('Fuel Load Failed', error.message || 'Unable to load fuel records.')
+        const vehicles = await getVehicles()
+        setVehiclesState(Array.isArray(vehicles) ? vehicles : [])
+      } catch {
+        setVehiclesState([])
       }
     }
 
-    loadFuel()
+    loadVehicles()
+  }, [])
+
+  useEffect(() => {
+    async function loadExpenses() {
+      try {
+        const response = await getExpenseLogs()
+        setExpenseLogs(normalizeList(response))
+      } catch {
+        setExpenseLogs([])
+      }
+    }
+
+    loadExpenses()
   }, [])
 
   useEffect(() => {
@@ -139,6 +174,7 @@ function FuelPage({ globalSearchQuery = '' }) {
     const totalLogs = fuelState.data.length
     const totalLiters = fuelState.data.reduce((sum, item) => sum + Number(item.liters || 0), 0)
     const totalCost = fuelState.data.reduce((sum, item) => sum + Number(item.cost || 0), 0)
+    const totalOtherExpenses = expenseLogs.reduce((sum, item) => sum + Number(item.amount || 0), 0)
     const currentMonth = new Date().toISOString().slice(0, 7)
     const monthlyFuelUsage = fuelState.data.reduce((sum, item) => {
       const recordMonth = String(item.date || '').slice(0, 7)
@@ -147,11 +183,12 @@ function FuelPage({ globalSearchQuery = '' }) {
 
     return [
       { id: 'cost', label: 'Total Fuel Cost', value: String(totalCost), icon: 'TC', tone: 'amber', description: 'Total fuel spend.' },
+      { id: 'other-expense', label: 'Other Expense Cost', value: String(totalOtherExpenses), icon: 'OE', tone: 'rose', description: 'Tolls, parking, insurance, etc.' },
       { id: 'entries', label: 'Total Fuel Entries', value: String(totalLogs), icon: 'FE', tone: 'blue', description: 'Total recorded fuel entries.' },
       { id: 'usage', label: 'Monthly Fuel Usage', value: String(monthlyFuelUsage), icon: 'MU', tone: 'teal', description: 'Liters logged this month.' },
       { id: 'liters', label: 'Total Fuel Volume', value: String(totalLiters), icon: 'LT', tone: 'indigo', description: 'Total liters recorded.' },
     ]
-  }, [fuelState.data])
+  }, [fuelState.data, expenseLogs])
 
   function resetFilters() {
     setSearch('')
@@ -160,6 +197,51 @@ function FuelPage({ globalSearchQuery = '' }) {
     setVehicleFilter('all')
     setSortBy('date')
     setSortDirection('desc')
+  }
+
+  const openCreateModal = () => {
+    setCreateState({ open: true, saving: false })
+  }
+
+  const closeCreateModal = () => {
+    setCreateState({ open: false, saving: false })
+  }
+
+  const openExpenseModal = () => {
+    setExpenseState({ open: true, saving: false })
+  }
+
+  const closeExpenseModal = () => {
+    setExpenseState({ open: false, saving: false })
+  }
+
+  const onCreateFuel = async (payload) => {
+    setCreateState((previous) => ({ ...previous, saving: true }))
+
+    try {
+      await createFuelLog(payload)
+      closeCreateModal()
+      toast.success('Fuel Created', 'Fuel record saved successfully.')
+      await loadFuel({ silent: true })
+    } catch (error) {
+      setCreateState((previous) => ({ ...previous, saving: false }))
+      toast.error('Create Fuel Failed', error.message || 'Unable to create fuel record.')
+    }
+  }
+
+  const onCreateExpense = async (payload) => {
+    setExpenseState((previous) => ({ ...previous, saving: true }))
+
+    try {
+      await createExpenseLog(payload)
+      closeExpenseModal()
+      toast.success('Expense Created', 'Expense record saved successfully.')
+      const response = await getExpenseLogs()
+      setExpenseLogs(normalizeList(response))
+    } catch (error) {
+      setExpenseState((previous) => ({ ...previous, saving: false }))
+      toast.error('Create Expense Failed', error.message || 'Unable to create expense record.')
+    }
   }
 
   return (
@@ -186,6 +268,8 @@ function FuelPage({ globalSearchQuery = '' }) {
         onVehicleChange={setVehicleFilter}
         onSortByChange={setSortBy}
         onSortDirectionChange={setSortDirection}
+        onAdd={openCreateModal}
+        onAddExpense={openExpenseModal}
       />
 
       <section className="panel-card filters-trigger-card">
@@ -263,6 +347,26 @@ function FuelPage({ globalSearchQuery = '' }) {
       )}
 
       <FuelDetailsModal record={selectedRecord} onClose={() => setSelectedRecord(null)} />
+
+      {createState.open && (
+        <FuelCreateModal
+          open={createState.open}
+          submitting={createState.saving}
+          vehicles={vehiclesState}
+          onClose={closeCreateModal}
+          onSubmit={onCreateFuel}
+        />
+      )}
+
+      {expenseState.open && (
+        <ExpenseCreateModal
+          open={expenseState.open}
+          submitting={expenseState.saving}
+          vehicles={vehiclesState}
+          onClose={closeExpenseModal}
+          onSubmit={onCreateExpense}
+        />
+      )}
     </>
   )
 }

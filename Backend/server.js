@@ -33,6 +33,17 @@ app.get('/api/health', (req, res) => {
 app.post('/api/auth/signup', signup)
 app.post('/api/auth/login', login)
 
+app.use((error, req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON payload.',
+    })
+  }
+
+  return next(error)
+})
+
 
 await initDatabase()
 

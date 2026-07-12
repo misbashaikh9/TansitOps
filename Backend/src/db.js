@@ -106,9 +106,30 @@ export async function initDatabase() {
         vehicle_id INTEGER REFERENCES vehicles(id),
         expense_type VARCHAR(100),
         amount DECIMAL,
-        date DATE
+        date DATE,
+        note TEXT
       );
 
+    `);
+
+    await pool.query(`
+      ALTER TABLE expenses
+      ADD COLUMN IF NOT EXISTS note TEXT;
+    `);
+
+    await pool.query(`
+      ALTER TABLE trips
+      ADD COLUMN IF NOT EXISTS final_odometer DECIMAL(10,2);
+    `);
+
+    await pool.query(`
+      ALTER TABLE trips
+      ADD COLUMN IF NOT EXISTS fuel_consumed DECIMAL(10,2);
+    `);
+
+    await pool.query(`
+      ALTER TABLE trips
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     `);
 
 

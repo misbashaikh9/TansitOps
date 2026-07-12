@@ -13,6 +13,7 @@ function MaintenanceToolbar({
   onVehicleChange,
   onSortByChange,
   onSortDirectionChange,
+  onAdd,
 }) {
   return (
     <section className="panel-card vehicles-toolbar">
@@ -73,6 +74,10 @@ function MaintenanceToolbar({
             <option value="asc">Ascending</option>
           </select>
         </label>
+
+        <button type="button" className="vehicles-add-button" onClick={onAdd}>
+          Add Maintenance
+        </button>
       </div>
     </section>
   )

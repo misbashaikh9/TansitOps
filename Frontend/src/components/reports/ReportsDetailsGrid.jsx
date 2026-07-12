@@ -33,6 +33,18 @@ function ReportsDetailsGrid({ data }) {
           <span>Total Maintenance Cost</span>
           <strong>{String(data.totalMaintenanceCost ?? 0)}</strong>
         </div>
+        <div className="reports-detail-item">
+          <span>Total Other Expense Cost</span>
+          <strong>{String(data.totalOtherExpenseCost ?? 0)}</strong>
+        </div>
+        <div className="reports-detail-item">
+          <span>Operational Cost</span>
+          <strong>{String(data.operationalCost ?? 0)}</strong>
+        </div>
+        <div className="reports-detail-item">
+          <span>Fuel Efficiency</span>
+          <strong>{data.fuelEfficiency ?? '0.00 km/L'}</strong>
+        </div>
       </div>
     </section>
   )

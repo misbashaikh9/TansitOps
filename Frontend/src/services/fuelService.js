@@ -1,14 +1,21 @@
 import api from './api.js'
 
 export async function getFuelLogs() {
-  try {
-    const response = await api.get('/fuel')
-    return response.data
-  } catch (error) {
-    if (error.message?.toLowerCase().includes('404')) {
-      throw new Error('Fuel API endpoint is not available yet in backend.')
-    }
+  const response = await api.get('/fuel')
+  return response.data
+}
 
-    throw error
-  }
+export async function createFuelLog(payload) {
+  const response = await api.post('/fuel', payload)
+  return response.data
+}
+
+export async function createExpenseLog(payload) {
+  const response = await api.post('/fuel/expenses', payload)
+  return response.data
+}
+
+export async function getExpenseLogs() {
+  const response = await api.get('/fuel/expenses')
+  return response.data
 }

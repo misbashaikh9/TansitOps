@@ -101,10 +101,48 @@ export async function createTrip(req, res) {
 
         );
 
+        const createdTrip = result.rows[0];
+
+        // Auto-dispatch when trip is assigned at creation time.
+        await pool.query(
+            `
+            UPDATE trips
+            SET status='Dispatched',
+                updated_at=CURRENT_TIMESTAMP
+            WHERE id=$1
+            RETURNING *
+            `,
+            [createdTrip.id]
+        );
+
+        // Vehicle and driver move to On Trip as soon as assigned.
+        await pool.query(
+            `
+            UPDATE vehicles
+            SET status='On Trip'
+            WHERE id=$1
+            `,
+            [vehicle_id]
+        );
+
+        await pool.query(
+            `
+            UPDATE drivers
+            SET status='On Trip'
+            WHERE id=$1
+            `,
+            [driver_id]
+        );
+
+        const tripWithStatus = await pool.query(
+            "SELECT * FROM trips WHERE id=$1",
+            [createdTrip.id]
+        );
+
         res.status(201).json({
             success: true,
-            message: "Trip created successfully",
-            data: result.rows[0]
+            message: "Trip created and dispatched successfully",
+            data: tripWithStatus.rows[0]
         });
 
     } catch (error) {

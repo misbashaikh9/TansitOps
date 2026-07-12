@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import TripDeleteDialog from '../components/trips/TripDeleteDialog.jsx'
+import TripCompleteModal from '../components/trips/TripCompleteModal.jsx'
 import TripFormModal from '../components/trips/TripFormModal.jsx'
 import TripPagination from '../components/trips/TripPagination.jsx'
 import TripStats from '../components/trips/TripStats.jsx'
@@ -66,6 +67,7 @@ function TripsPage({ globalSearchQuery = '' }) {
   const [viewTrip, setViewTrip] = useState(null)
   const [formState, setFormState] = useState({ open: false, mode: 'add', saving: false, trip: null })
   const [deleteState, setDeleteState] = useState({ open: false, deleting: false, trip: null })
+  const [completeState, setCompleteState] = useState({ open: false, saving: false, trip: null })
 
   const loadTrips = async () => {
     setTripsState((previous) => ({ ...previous, loading: true, error: '' }))
@@ -282,15 +284,28 @@ function TripsPage({ globalSearchQuery = '' }) {
     }
   }
 
-  const onCompleteTrip = async (trip) => {
+  const openCompleteDialog = (trip) => {
+    setCompleteState({ open: true, saving: false, trip })
+  }
+
+  const closeCompleteDialog = () => {
+    setCompleteState({ open: false, saving: false, trip: null })
+  }
+
+  const onCompleteTrip = async (payload) => {
+    if (!completeState.trip?.id) {
+      return
+    }
+
+    setCompleteState((previous) => ({ ...previous, saving: true }))
+
     try {
-      await completeTrip(trip.id, {
-        final_odometer: Number(trip.final_odometer || 0),
-        fuel_consumed: Number(trip.fuel_consumed || 0),
-      })
+      await completeTrip(completeState.trip.id, payload)
+      closeCompleteDialog()
       await loadTrips()
     } catch (error) {
       setTripsState((previous) => ({ ...previous, error: error.message || 'Unable to complete trip.' }))
+      setCompleteState((previous) => ({ ...previous, saving: false }))
     }
   }
 
@@ -346,7 +361,7 @@ function TripsPage({ globalSearchQuery = '' }) {
             onEdit={openEditModal}
             onDelete={openDeleteDialog}
             onDispatch={onDispatchTrip}
-            onComplete={onCompleteTrip}
+            onComplete={openCompleteDialog}
             onCancel={onCancelTrip}
           />
 
@@ -379,6 +394,15 @@ function TripsPage({ globalSearchQuery = '' }) {
         onCancel={closeDeleteDialog}
         onConfirm={onConfirmDelete}
       />
+
+      {completeState.open && (
+        <TripCompleteModal
+          trip={completeState.trip}
+          submitting={completeState.saving}
+          onClose={closeCompleteDialog}
+          onSubmit={onCompleteTrip}
+        />
+      )}
     </>
   )
 }

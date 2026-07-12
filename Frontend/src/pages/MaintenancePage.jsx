@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import MaintenanceCreateModal from '../components/maintenance/MaintenanceCreateModal.jsx'
 import MaintenanceDetailsModal from '../components/maintenance/MaintenanceDetailsModal.jsx'
 import MaintenancePagination from '../components/maintenance/MaintenancePagination.jsx'
 import MaintenanceStats from '../components/maintenance/MaintenanceStats.jsx'
 import MaintenanceTable from '../components/maintenance/MaintenanceTable.jsx'
 import MaintenanceToolbar from '../components/maintenance/MaintenanceToolbar.jsx'
-import { getMaintenanceTasks } from '../services/maintenanceService.js'
+import { createMaintenanceTask, getMaintenanceTasks } from '../services/maintenanceService.js'
+import { getVehicles } from '../services/vehicleService.js'
 
 const PAGE_SIZE = 10
 
@@ -71,6 +73,8 @@ function MaintenancePage({ globalSearchQuery = '' }) {
   const [sortDirection, setSortDirection] = useState('desc')
   const [page, setPage] = useState(1)
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [vehiclesState, setVehiclesState] = useState([])
+  const [createState, setCreateState] = useState({ open: false, saving: false })
 
   useEffect(() => {
     async function loadMaintenance() {
@@ -89,6 +93,19 @@ function MaintenancePage({ globalSearchQuery = '' }) {
     }
 
     loadMaintenance()
+  }, [])
+
+  useEffect(() => {
+    async function loadVehicles() {
+      try {
+        const vehicles = await getVehicles()
+        setVehiclesState(Array.isArray(vehicles) ? vehicles : [])
+      } catch {
+        setVehiclesState([])
+      }
+    }
+
+    loadVehicles()
   }, [])
 
   useEffect(() => {
@@ -170,6 +187,44 @@ function MaintenancePage({ globalSearchQuery = '' }) {
     ]
   }, [maintenanceState.data])
 
+  const openCreateModal = () => {
+    setCreateState({ open: true, saving: false })
+  }
+
+  const closeCreateModal = () => {
+    setCreateState({ open: false, saving: false })
+  }
+
+  const refreshMaintenance = async () => {
+    setMaintenanceState((previous) => ({ ...previous, loading: true, error: '' }))
+
+    try {
+      const response = await getMaintenanceTasks()
+      setMaintenanceState({ loading: false, error: '', data: normalizeList(response) })
+    } catch (error) {
+      setMaintenanceState({
+        loading: false,
+        error: error.message || 'Unable to load maintenance records.',
+        data: [],
+      })
+    }
+  }
+
+  const onCreateMaintenance = async (payload) => {
+    setCreateState((previous) => ({ ...previous, saving: true }))
+
+    try {
+      await createMaintenanceTask(payload)
+      closeCreateModal()
+      await refreshMaintenance()
+      const vehicles = await getVehicles()
+      setVehiclesState(Array.isArray(vehicles) ? vehicles : [])
+    } catch (error) {
+      setMaintenanceState((previous) => ({ ...previous, error: error.message || 'Unable to create maintenance record.' }))
+      setCreateState((previous) => ({ ...previous, saving: false }))
+    }
+  }
+
   return (
     <>
       <section className="panel-card drivers-page-header">
@@ -195,6 +250,7 @@ function MaintenancePage({ globalSearchQuery = '' }) {
         onVehicleChange={setVehicleFilter}
         onSortByChange={setSortBy}
         onSortDirectionChange={setSortDirection}
+        onAdd={openCreateModal}
       />
 
       {maintenanceState.loading && (
@@ -224,6 +280,16 @@ function MaintenancePage({ globalSearchQuery = '' }) {
       )}
 
       <MaintenanceDetailsModal record={selectedRecord} onClose={() => setSelectedRecord(null)} />
+
+      {createState.open && (
+        <MaintenanceCreateModal
+          open={createState.open}
+          submitting={createState.saving}
+          vehicles={vehiclesState}
+          onClose={closeCreateModal}
+          onSubmit={onCreateMaintenance}
+        />
+      )}
     </>
   )
 }

@@ -12,6 +12,8 @@ function FuelToolbar({
   onVehicleChange,
   onSortByChange,
   onSortDirectionChange,
+  onAdd,
+  onAddExpense,
 }) {
   return (
     <section className="panel-card vehicles-toolbar">
@@ -65,6 +67,14 @@ function FuelToolbar({
             <option value="asc">Ascending</option>
           </select>
         </label>
+
+        <button type="button" className="vehicles-add-button" onClick={onAdd}>
+          Add Fuel
+        </button>
+
+        <button type="button" className="vehicles-add-button" onClick={onAddExpense}>
+          Add Expense
+        </button>
       </div>
     </section>
   )

@@ -1,14 +1,11 @@
 import api from './api.js'
 
 export async function getMaintenanceTasks() {
-  try {
-    const response = await api.get('/maintenance')
-    return response.data
-  } catch (error) {
-    if (error.message?.toLowerCase().includes('404')) {
-      throw new Error('Maintenance API endpoint is not available yet in backend.')
-    }
+  const response = await api.get('/maintenance')
+  return response.data
+}
 
-    throw error
-  }
+export async function createMaintenanceTask(payload) {
+  const response = await api.post('/maintenance', payload)
+  return response.data
 }

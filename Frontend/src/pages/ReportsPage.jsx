@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext.jsx'
 import ReportsCharts from '../components/reports/ReportsCharts.jsx'
 import ReportsDetailsGrid from '../components/reports/ReportsDetailsGrid.jsx'
 import ReportsHeader from '../components/reports/ReportsHeader.jsx'
+import ReportsOperationalCostTable from '../components/reports/ReportsOperationalCostTable.jsx'
 import ReportsSummaryCards from '../components/reports/ReportsSummaryCards.jsx'
 import { getReports } from '../services/reportService.js'
 
@@ -125,6 +126,27 @@ function ReportsPage() {
       tone: 'slate',
       icon: 'MC',
     },
+    {
+      id: 'other-expense-cost',
+      label: 'Other Expense Cost',
+      value: String(reportState.data.totalOtherExpenseCost ?? 0),
+      tone: 'fuchsia',
+      icon: 'EC',
+    },
+    {
+      id: 'operational-cost',
+      label: 'Operational Cost',
+      value: String(reportState.data.operationalCost ?? 0),
+      tone: 'rose',
+      icon: 'OC',
+    },
+    {
+      id: 'fuel-efficiency',
+      label: 'Fuel Efficiency',
+      value: reportState.data.fuelEfficiency ?? '0.00 km/L',
+      tone: 'cyan',
+      icon: 'FE',
+    },
   ]
 
   return (
@@ -133,6 +155,7 @@ function ReportsPage() {
       <ReportsSummaryCards cards={cards} />
       <ReportsCharts data={reportState.data} />
       <ReportsDetailsGrid data={reportState.data} />
+      <ReportsOperationalCostTable rows={reportState.data.vehicleOperationalCosts || []} />
     </>
   )
 }
