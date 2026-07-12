@@ -5,8 +5,9 @@ function DriverDeleteDialog({ driver, deleting, onCancel, onConfirm }) {
 
   return (
     <div className="vehicles-modal-overlay" role="dialog" aria-modal="true">
-      <section className="vehicles-modal-card drivers-delete-dialog">
+      <section className="vehicles-modal-card drivers-delete-dialog" aria-label="Delete driver confirmation">
         <header className="vehicles-modal-header">
+          <div className="state-panel-illustration" aria-hidden="true" />
           <h3>Delete Driver</h3>
         </header>
 

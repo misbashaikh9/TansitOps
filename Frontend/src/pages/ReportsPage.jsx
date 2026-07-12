@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
+import SkeletonBlock from '../components/SkeletonBlock.jsx'
+import StatePanel from '../components/StatePanel.jsx'
+import { useToast } from '../context/ToastContext.jsx'
+import ReportsCharts from '../components/reports/ReportsCharts.jsx'
 import ReportsDetailsGrid from '../components/reports/ReportsDetailsGrid.jsx'
 import ReportsHeader from '../components/reports/ReportsHeader.jsx'
-import ReportsStateCard from '../components/reports/ReportsStateCard.jsx'
 import ReportsSummaryCards from '../components/reports/ReportsSummaryCards.jsx'
 import { getReports } from '../services/reportService.js'
 
 function ReportsPage() {
+  const toast = useToast()
   const [reportState, setReportState] = useState({
     loading: true,
     error: '',
@@ -22,10 +26,12 @@ function ReportsPage() {
         const response = await getReports()
         if (mounted) {
           setReportState({ loading: false, error: '', data: response?.data || null })
+          toast.success('Reports Synced', 'Summary analytics updated.')
         }
       } catch (error) {
         if (mounted) {
           setReportState({ loading: false, error: error.message, data: null })
+          toast.error('Reports Error', error.message || 'Unable to load reports.')
         }
       }
     }
@@ -43,21 +49,37 @@ function ReportsPage() {
     try {
       const response = await getReports()
       setReportState({ loading: false, error: '', data: response?.data || null })
+      toast.success('Reports Refreshed', 'Latest report data loaded.')
     } catch (error) {
       setReportState({ loading: false, error: error.message, data: null })
+      toast.error('Refresh Failed', error.message || 'Unable to refresh reports.')
     }
   }
 
   if (reportState.loading) {
-    return <ReportsStateCard message="Loading reports..." />
+    return <SkeletonBlock rows={6} />
   }
 
   if (reportState.error) {
-    return <ReportsStateCard message={reportState.error} error actionLabel="Retry" onAction={refreshReports} />
+    return (
+      <StatePanel
+        title="Unable to Load Reports"
+        message={reportState.error}
+        tone="error"
+        primaryAction={{ label: 'Retry', onClick: refreshReports }}
+      />
+    )
   }
 
   if (!reportState.data) {
-    return <ReportsStateCard message="No report data available from backend yet." actionLabel="Refresh" onAction={refreshReports} />
+    return (
+      <StatePanel
+        title="No Report Data"
+        message="No report data available from backend yet."
+        tone="neutral"
+        primaryAction={{ label: 'Refresh', onClick: refreshReports }}
+      />
+    )
   }
 
   const cards = [
@@ -109,6 +131,7 @@ function ReportsPage() {
     <>
       <ReportsHeader onRefresh={refreshReports} />
       <ReportsSummaryCards cards={cards} />
+      <ReportsCharts data={reportState.data} />
       <ReportsDetailsGrid data={reportState.data} />
     </>
   )

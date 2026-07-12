@@ -56,36 +56,40 @@ function VehicleFormModal({ isOpen, mode, vehicle, onClose, onSave, saving }) {
         </header>
 
         <form className="vehicles-form-grid" onSubmit={submit}>
-          <label>
-            Vehicle Number
+          <label className="floating-field">
+            <span>Vehicle Number</span>
             <input
               required
+              maxLength={30}
               value={form.registration_number}
               onChange={(event) => onFieldChange('registration_number', event.target.value)}
             />
+            <small>{form.registration_number.length}/30</small>
           </label>
 
-          <label>
-            Vehicle Name
+          <label className="floating-field">
+            <span>Vehicle Name</span>
             <input
               required
+              maxLength={60}
               value={form.vehicle_name}
               onChange={(event) => onFieldChange('vehicle_name', event.target.value)}
             />
+            <small>{form.vehicle_name.length}/60</small>
           </label>
 
-          <label>
-            Type
+          <label className="floating-field">
+            <span>Type</span>
             <input value={form.type} onChange={(event) => onFieldChange('type', event.target.value)} />
           </label>
 
-          <label>
-            Model
+          <label className="floating-field">
+            <span>Model</span>
             <input value={form.model} onChange={(event) => onFieldChange('model', event.target.value)} />
           </label>
 
-          <label>
-            Max Load Capacity
+          <label className="floating-field">
+            <span>Max Load Capacity</span>
             <input
               required
               type="number"
@@ -96,8 +100,8 @@ function VehicleFormModal({ isOpen, mode, vehicle, onClose, onSave, saving }) {
             />
           </label>
 
-          <label>
-            Odometer
+          <label className="floating-field">
+            <span>Odometer</span>
             <input
               type="number"
               min="0"
@@ -106,8 +110,8 @@ function VehicleFormModal({ isOpen, mode, vehicle, onClose, onSave, saving }) {
             />
           </label>
 
-          <label>
-            Acquisition Cost
+          <label className="floating-field">
+            <span>Acquisition Cost</span>
             <input
               type="number"
               min="0"
@@ -117,8 +121,8 @@ function VehicleFormModal({ isOpen, mode, vehicle, onClose, onSave, saving }) {
             />
           </label>
 
-          <label>
-            Status
+          <label className="floating-field">
+            <span>Status</span>
             <select value={form.status} onChange={(event) => onFieldChange('status', event.target.value)}>
               <option value="Available">Available</option>
               <option value="Active">Active</option>

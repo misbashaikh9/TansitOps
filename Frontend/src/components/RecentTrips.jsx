@@ -1,4 +1,6 @@
-function RecentTrips({ trips }) {
+import SearchHighlight from './SearchHighlight.jsx'
+
+function RecentTrips({ trips, query }) {
   return (
     <section className="panel-card">
       <div className="panel-card-header">
@@ -28,10 +30,10 @@ function RecentTrips({ trips }) {
             <tbody>
               {trips.map((trip) => (
                 <tr key={trip.id}>
-                  <td>{trip.id}</td>
-                  <td>{trip.vehicle}</td>
-                  <td>{trip.driver}</td>
-                  <td>{trip.destination}</td>
+                  <td><SearchHighlight text={trip.id} query={query} /></td>
+                  <td><SearchHighlight text={trip.vehicle} query={query} /></td>
+                  <td><SearchHighlight text={trip.driver} query={query} /></td>
+                  <td><SearchHighlight text={trip.destination} query={query} /></td>
                   <td>
                     <span className={`status-badge status-${trip.status.toLowerCase()}`}>
                       {trip.status}
