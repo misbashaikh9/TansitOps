@@ -5,7 +5,9 @@ import Navbar from '../components/Navbar.jsx'
 import RecentTrips from '../components/RecentTrips.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import DriversPage from './DriversPage.jsx'
+import FuelPage from './FuelPage.jsx'
 import MaintenancePage from './MaintenancePage.jsx'
+import ReportsPage from './ReportsPage.jsx'
 import TripsPage from './TripsPage.jsx'
 import VehiclesPage from './VehiclesPage.jsx'
 import { getDashboardData } from '../services/dashboardService.js'
@@ -67,6 +69,11 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
     )
   }, [dashboardState.data, searchValue])
 
+  const pageTitle = useMemo(() => {
+    const currentPage = navigationItems.find((item) => item.id === activeItem)
+    return currentPage?.label || 'Dashboard'
+  }, [activeItem])
+
   return (
     <main className="dashboard-shell">
       <Sidebar
@@ -83,7 +90,7 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
 
       <section className="dashboard-main">
         <Navbar
-          pageTitle="Dashboard"
+          pageTitle={pageTitle}
           currentUser={currentUser}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
@@ -112,6 +119,8 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
         {activeItem === 'drivers' && <DriversPage />}
         {activeItem === 'trips' && <TripsPage />}
         {activeItem === 'maintenance' && <MaintenancePage />}
+        {activeItem === 'fuel' && <FuelPage />}
+        {activeItem === 'reports' && <ReportsPage />}
 
         {activeItem === 'dashboard' && (
           <>

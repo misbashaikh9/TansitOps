@@ -7,13 +7,13 @@ function DriversPage() {
       title="Drivers"
       description="Operator roster"
       fetcher={getDrivers}
-      columns={['Driver', 'Shift', 'Phone', 'Status']}
+      columns={['Driver', 'License No.', 'Contact', 'Status']}
       emptyMessage="No driver records are available from the backend yet."
       renderItem={(item) => (
         <>
-          <td>{item.driver || item.name || item.id || '—'}</td>
-          <td>{item.shift || '—'}</td>
-          <td>{item.phone || '—'}</td>
+          <td>{item.name || item.id || '—'}</td>
+          <td>{item.license_number || '—'}</td>
+          <td>{item.contact_number || '—'}</td>
           <td>{item.status || '—'}</td>
         </>
       )}
