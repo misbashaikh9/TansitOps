@@ -76,13 +76,13 @@ export async function initDatabase() {
 
     final_odometer DECIMAL(10,2),
     fuel_consumed DECIMAL(10,2),
-revenue DECIMAL(10,2) DEFAULT 0,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
-      CREATE TABLE IF NOT EXISTS maintenance_logs(
+      CREATE TABLE IF NOT EXISTS maintenance_logs(  
         id SERIAL PRIMARY KEY,
         vehicle_id INTEGER REFERENCES vehicles(id),
         description TEXT,

@@ -1,17 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import FleetChart from '../components/FleetChart.jsx'
 import KPICard from '../components/KPICard.jsx'
 import Navbar from '../components/Navbar.jsx'
 import RecentTrips from '../components/RecentTrips.jsx'
+import SkeletonBlock from '../components/SkeletonBlock.jsx'
 import Sidebar from '../components/Sidebar.jsx'
-import DriversPage from './DriversPage.jsx'
-import FuelPage from './FuelPage.jsx'
-import MaintenancePage from './MaintenancePage.jsx'
-import ReportsPage from './ReportsPage.jsx'
-import TripsPage from './TripsPage.jsx'
-import VehiclesPage from './VehiclesPage.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
+import { useToast } from '../context/ToastContext.jsx'
 import { getDashboardData } from '../services/dashboardService.js'
 import '../styles/dashboard.css'
+
+const DriversPage = lazy(() => import('./DriversPage.jsx'))
+const FuelPage = lazy(() => import('./FuelPage.jsx'))
+const MaintenancePage = lazy(() => import('./MaintenancePage.jsx'))
+const ReportsPage = lazy(() => import('./ReportsPage.jsx'))
+const TripsPage = lazy(() => import('./TripsPage.jsx'))
+const VehiclesPage = lazy(() => import('./VehiclesPage.jsx'))
 
 const navigationItems = [
   { id: 'dashboard', label: 'Dashboard', shortLabel: 'DB' },
@@ -25,6 +29,8 @@ const navigationItems = [
 ]
 
 function Dashboard({ currentUser, backendStatus, onLogout }) {
+  const { theme, toggleTheme } = useTheme()
+  const toast = useToast()
   const [dashboardState, setDashboardState] = useState({
     loading: true,
     error: '',
@@ -41,16 +47,31 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
       try {
         const data = await getDashboardData()
         setDashboardState({ loading: false, error: '', data })
+        toast.success('Dashboard Updated', 'Live data synced successfully.')
       } catch (error) {
         setDashboardState({
           loading: false,
           error: error.message || 'Unable to load dashboard data.',
           data: null,
         })
+        toast.error('Load Failed', error.message || 'Unable to load dashboard data.')
       }
     }
 
     loadDashboard()
+  }, [])
+
+  useEffect(() => {
+    const onShortcut = (event) => {
+      if (event.ctrlKey && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        const input = document.querySelector('.navbar-search input')
+        input?.focus()
+      }
+    }
+
+    window.addEventListener('keydown', onShortcut)
+    return () => window.removeEventListener('keydown', onShortcut)
   }, [])
 
   const filteredTrips = useMemo(() => {
@@ -95,6 +116,8 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
           searchValue={searchValue}
           onSearchChange={setSearchValue}
           onMenuToggle={() => setIsSidebarOpen((previous) => !previous)}
+          theme={theme}
+          onThemeToggle={toggleTheme}
         />
 
         <section className="dashboard-hero">
@@ -115,12 +138,16 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
           </div>
         </section>
 
-        {activeItem === 'vehicles' && <VehiclesPage />}
-        {activeItem === 'drivers' && <DriversPage />}
-        {activeItem === 'trips' && <TripsPage />}
-        {activeItem === 'maintenance' && <MaintenancePage />}
-        {activeItem === 'fuel' && <FuelPage />}
-        {activeItem === 'reports' && <ReportsPage />}
+        <section className="page-transition-shell" key={activeItem}>
+          <Suspense fallback={<SkeletonBlock rows={6} />}>
+            {activeItem === 'vehicles' && <VehiclesPage />}
+            {activeItem === 'drivers' && <DriversPage />}
+            {activeItem === 'trips' && <TripsPage />}
+            {activeItem === 'maintenance' && <MaintenancePage />}
+            {activeItem === 'fuel' && <FuelPage />}
+            {activeItem === 'reports' && <ReportsPage />}
+          </Suspense>
+        </section>
 
         {activeItem === 'dashboard' && (
           <>
@@ -144,7 +171,7 @@ function Dashboard({ currentUser, backendStatus, onLogout }) {
 
                 <section className="dashboard-content-grid">
                   <FleetChart data={dashboardState.data.fleetTrend || []} />
-                  <RecentTrips trips={filteredTrips} />
+                  <RecentTrips trips={filteredTrips} query={searchValue} />
                 </section>
               </>
             )}

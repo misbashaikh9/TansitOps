@@ -4,6 +4,8 @@ function Navbar({
   searchValue,
   onSearchChange,
   onMenuToggle,
+  theme,
+  onThemeToggle,
 }) {
   return (
     <header className="dashboard-navbar">
@@ -20,13 +22,30 @@ function Navbar({
       <div className="dashboard-navbar-actions">
         <label className="navbar-search">
           <span className="sr-only">Search dashboard</span>
+          <span className="navbar-search-icon" aria-hidden="true">⌕</span>
           <input
             type="search"
             placeholder="Search vehicles, drivers, or trips"
             value={searchValue}
             onChange={(event) => onSearchChange(event.target.value)}
+            aria-label="Global search"
           />
+          {searchValue && (
+            <button
+              type="button"
+              className="navbar-search-clear"
+              onClick={() => onSearchChange('')}
+              aria-label="Clear search"
+            >
+              x
+            </button>
+          )}
+          <kbd className="navbar-search-shortcut">Ctrl+K</kbd>
         </label>
+
+        <button type="button" className="navbar-theme-toggle" onClick={onThemeToggle} aria-label="Toggle theme">
+          {theme === 'dark' ? 'Light' : 'Dark'}
+        </button>
 
         <button type="button" className="navbar-notification" aria-label="Notifications">
           <span className="navbar-notification-badge">3</span>
